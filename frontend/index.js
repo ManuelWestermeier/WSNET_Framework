@@ -4,16 +4,23 @@ var API = new Socket({ url: "ws://localhost:8888" })
 
 API.onOpen = async () => {
 
-    log(await API.get("test", { content: "Hallo" }))
-    log(await API.get("index", { content: "Hallo" }))
+    var { index } = await API.get("index", { content: "Hallo" })
 
-    API.say("test_say", {
+    log("get : index : " + index)
+
+    API.say("hallowelt", {
         HalloWelt: true
     })
+
 }
 
-API.onGet("x", res => {
+API.onGet("location", res => {
+    log("onGet : location :")
+    log(res)
+    return { url: document.location.toString() }
+})
 
-    return { content: "Hallo X" }
-
+API.onSay("hello", res => {
+    log("onSay : hallo : ")
+    log(res)
 })

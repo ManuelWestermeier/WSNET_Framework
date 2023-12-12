@@ -5,26 +5,25 @@ var index = 0;
 
 CreateApi({ port: 8888 }, async client => {
 
+    console.clear()
+
     index++;
 
     client.onGet("index", res => {
-
-        return {
-            index,
-        }
-
+        log("onGet : index : ")
+        log(res)
+        return { index }
     })
 
-    client.onGet("test", res => {
+    client.onSay("hallowelt", res => {
+        log("onSay : Hallowelt : ")
+        log(res)
+    })
 
-        return {
-            content: "Hallo Test"
-        }
+    client.say("hello", {})
 
-    });
-
-    client.onSay("test_say", log)
-
-    log(await client.get("x", { index }))
+    var location = await client.get("location", { x: true })
+    log("get : location : ")
+    log(location)
 
 })
