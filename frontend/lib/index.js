@@ -49,7 +49,7 @@ export class Socket {
     }
 
 
-    on(key, callback) {
+    onSay(key, callback) {
 
         this.obj.on[key] = callback
 

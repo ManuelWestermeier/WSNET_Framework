@@ -23,7 +23,7 @@ CreateApi({ port: 8888 }, async client => {
 
     });
 
-    client.on("test_say", log)
+    client.onSay("test_say", log)
 
     log(await client.get("x", { index }))
 
