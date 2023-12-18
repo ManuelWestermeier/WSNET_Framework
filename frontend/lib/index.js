@@ -4,22 +4,22 @@ export class Socket {
 
     constructor({ url }) {
 
-        this.obj = {
+        var obj = {
             on: {},
             Get: {},
             promises: {}
         }
 
-        this.ws = new WebSocket(url)
+        var ws = new WebSocket(url)
 
-        this.ws.onmessage = e => {
+        ws.onmessage = e => {
 
             var data = JSON.parse(e.data);
 
             if (data?.method?.toLocaleUpperCase() == "GET") {
-                if (this.obj.Get?.[data?.key])
+                if (obj.Get?.[data?.key])
                     this.send({
-                        ...this.obj.Get[data?.key](data),
+                        ...obj.Get[data?.key](data),
                         method: "GETBACK",
                         id: data?.id,
                     })
@@ -30,79 +30,72 @@ export class Socket {
                 })
             }
             else if (data?.method?.toLocaleUpperCase() == "GETBACK")
-                this.obj.promises[data?.id](data)
+                obj.promises[data?.id](data)
             else if (data?.method?.toLocaleUpperCase() == "SAY") {
-                if (this.obj.on[data?.key])
-                    this.obj.on[data?.key]?.(data)
+                if (obj.on[data?.key])
+                    obj.on[data?.key]?.(data)
             }
             else {
-                if (this.obj.on?.[data?.method]?.[data?.key])
-                    this.obj.on[data?.method][data?.key](data)
+                if (obj.on?.[data?.method]?.[data?.key])
+                    obj.on[data?.method][data?.key](data)
             }
 
         }
 
-        this.ws.onopen = () => { this.onOpen() };
-        this.ws.onerror = e => { this.onError(e) };
-        this.ws.onclose = e => { this.onClose(e) };
+        this.send = (res) => {
+            ws.send(JSON.stringify(res))
+        }
 
-    }
+        this.onSay = (key, callback) => {
+            obj.on[key] = callback
+        }
 
+        this.onGet = (key, callback) => {
+            obj.Get[key] = callback;
+        }
 
-    onSay(key, callback) {
+        this.get = (key, res) => {
 
-        this.obj.on[key] = callback
+            var id = getID(6);
 
-    }
+            return new Promise((reslove, reject) => {
 
-    onGet(key, callback) {
+                this.send({
+                    ...res,
+                    method: "GET",
+                    key,
+                    id
+                })
 
-        this.obj.Get[key] = callback;
+                var dont = setTimeout(() => {
+                    reject("more than 3 min")
+                }, 1000 * 60 * 3)
 
-    }
+                obj.promises[id] = res => {
 
-    get(key, res) {
+                    delete obj.promises[id]
 
-        var id = getID(6);
+                    clearTimeout(dont)
 
-        return new Promise((reslove, reject) => {
+                    reslove(res)
 
-            this.send({
-                ...res,
-                method: "GET",
-                key,
-                id
+                }
+
             })
 
-            var dont = setTimeout(() => {
-                reject("more than 3 min")
-            }, 1000 * 60 * 3)
+        }
 
-            this.obj.promises[id] = res => {
+        this.say = (key, res) => {
+            this.send({
+                ...res,
+                key,
+                method: "SAY"
+            })
+        }
 
-                delete this.obj.promises[id]
-
-                clearTimeout(dont)
-
-                reslove(res)
-
-            }
-
-        })
-
-    }
-
-    say(key, res) {
-        this.send({
-            ...res,
-            key,
-            method: "SAY"
-        })
-    }
-
-    send(res) {
-
-        this.ws.send(JSON.stringify(res))
+        ws.onopen = () => { this.onOpen() };
+        ws.onerror = e => { this.onError(e) };
+        ws.onclose = e => { this.onClose(e) };
 
     }
 
@@ -119,4 +112,8 @@ function getID(l) {
         str += chars[Math.floor(Math.random() * chars.length)]
     }
     return str;
+}
+
+export var utils = {
+    getID
 }

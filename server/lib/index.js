@@ -5,7 +5,7 @@ class Client {
 
     constructor(socket) {
 
-        this.obj = {
+        var obj = {
             on: {},
             Get: {},
             promises: {}
@@ -16,9 +16,9 @@ class Client {
             var data = JSON.parse(e.data.toString())
 
             if (data?.method?.toLocaleUpperCase() == "GET") {
-                if (this.obj.Get?.[data?.key])
+                if (obj.Get?.[data?.key])
                     this.send({
-                        ...this.obj.Get[data?.key](data),
+                        ...obj.Get[data?.key](data),
                         method: "GETBACK",
                         id: data?.id,
                     })
@@ -29,75 +29,73 @@ class Client {
                 })
             }
             else if (data?.method?.toLocaleUpperCase() == "GETBACK")
-                this.obj.promises[data?.id](data)
+                obj.promises[data?.id](data)
             else if (data?.method?.toLocaleUpperCase() == "SAY") {
-                if (this.obj.on[data?.key])
-                    this.obj.on[data?.key]?.(data)
+                if (obj.on[data?.key])
+                    obj.on[data?.key]?.(data)
             }
             else {
-                if (this.obj.on?.[data?.key])
-                    this.obj.on[data?.key](data)
+                if (obj.on?.[data?.key])
+                    obj.on[data?.key](data)
             }
 
         }
 
-        this.socket = socket;
+        this.onSay = (key, callback) => {
+            obj.on[key] = callback
+        }
+
+        this.onGet = (key, callback) => {
+            obj.Get[key] = callback;
+        }
+
+        this.get = (key, res) => {
+
+            var id = getID(6);
+
+            return new Promise((reslove, reject) => {
+
+                this.send({
+                    ...res,
+                    method: "GET",
+                    key,
+                    id
+                })
+
+                var dont = setTimeout(() => {
+                    reject("more than 3 min")
+                }, 1000 * 60 * 3)
+
+                obj.promises[id] = res => {
+
+                    delete obj.promises[id]
+
+                    clearTimeout(dont)
+
+                    reslove(res)
+
+                }
+
+            })
+
+        }
+
+        this.say = (key, res) => {
+            this.send({
+                ...res,
+                key,
+                method: "SAY"
+            })
+        }
+
+        this.send = (res) => {
+            socket.send(JSON.stringify(res))
+        }
 
         socket.onclose = x => { this.onClose(x) };
         socket.onerror = x => { this.onError(x) };
         socket.onopen = x => { this.onOpen(x) };
 
-    }
-
-    onSay(key, callback) {
-        this.obj.on[key] = callback
-    }
-
-    onGet(key, callback) {
-        this.obj.Get[key] = callback;
-    }
-
-    get(key, res) {
-
-        var id = getID(6);
-
-        return new Promise((reslove, reject) => {
-
-            this.send({
-                ...res,
-                method: "GET",
-                key,
-                id
-            })
-
-            var dont = setTimeout(() => {
-                reject("more than 3 min")
-            }, 1000 * 60 * 3)
-
-            this.obj.promises[id] = res => {
-
-                delete this.obj.promises[id]
-
-                clearTimeout(dont)
-
-                reslove(res)
-
-            }
-
-        })
-
-    }
-
-    say(key, res) {
-        this.send({
-            ...res,
-            key,
-            method: "SAY"
-        })
-    }
-
-    send(res) {
-        this.socket.send(JSON.stringify(res))
     }
 
     onOpen() { }
@@ -110,9 +108,7 @@ function CreateApi({ port }, callback) {
 
     new WebSocketServer({ port }).on("connection", socket => {
 
-        var ApiSocket = new Client(socket)
-
-        callback(ApiSocket);
+        callback(new Client(socket));
 
     })
 
@@ -127,5 +123,8 @@ function getID(l) {
 }
 
 exports.CreateApi = CreateApi;
+exports.utils = {
+    getID
+};
 
 process.on("uncaughtException", err => { console.error(err) })
