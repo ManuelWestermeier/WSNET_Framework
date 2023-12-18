@@ -43,22 +43,18 @@ class Client {
 
         this.socket = socket;
 
-        socket.onclose = this.onClose;
-        socket.onerror = this.onError;
-        socket.onopen = this.onOpen;
+        socket.onclose = x => { this.onClose(x) };
+        socket.onerror = x => { this.onError(x) };
+        socket.onopen = x => { this.onOpen(x) };
 
     }
 
     onSay(key, callback) {
-
         this.obj.on[key] = callback
-
     }
 
     onGet(key, callback) {
-
         this.obj.Get[key] = callback;
-
     }
 
     get(key, res) {
@@ -101,9 +97,7 @@ class Client {
     }
 
     send(res) {
-
         this.socket.send(JSON.stringify(res))
-
     }
 
     onOpen() { }
