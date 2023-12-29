@@ -6,38 +6,45 @@ export class Socket {
 
         var obj = {
             on: {},
-            Get: {},
-            promises: {}
+            onGet: {},
+            onStream: {},
+            promises: {},
         }
 
         var ws = new WebSocket(url)
 
-        ws.onmessage = e => {
+        ws.onmessage = async e => {
 
             var data = JSON.parse(e.data);
 
             if (data?.method?.toLocaleUpperCase() == "GET") {
-                if (obj.Get?.[data?.key])
-                    this.send({
-                        ...obj.Get[data?.key](data),
+                if (obj.onGet?.[data?.key]) {
+                    var res = obj.onGet[data?.key](data.cont)
+                    if (isPromise(res))
+                        res.then(_res => {
+                            this.send({
+                                cont: _res,
+                                method: "GETBACK",
+                                id: data?.id,
+                            })
+                        })
+                    else this.send({
+                        cont: res,
                         method: "GETBACK",
                         id: data?.id,
                     })
+                }
                 else this.send({
                     method: "GETBACK",
                     id: data?.id,
-                    content: "404",
+                    cont: "404",
                 })
             }
             else if (data?.method?.toLocaleUpperCase() == "GETBACK")
-                obj.promises[data?.id](data)
+                obj.promises[data?.id](data.cont)
             else if (data?.method?.toLocaleUpperCase() == "SAY") {
                 if (obj.on[data?.key])
-                    obj.on[data?.key]?.(data)
-            }
-            else {
-                if (obj.on?.[data?.method]?.[data?.key])
-                    obj.on[data?.method][data?.key](data)
+                    obj.on[data?.key]?.(data.cont)
             }
 
         }
@@ -51,7 +58,7 @@ export class Socket {
         }
 
         this.onGet = (key, callback) => {
-            obj.Get[key] = callback;
+            obj.onGet[key] = callback;
         }
 
         this.get = (key, res) => {
@@ -61,7 +68,7 @@ export class Socket {
             return new Promise((reslove, reject) => {
 
                 this.send({
-                    ...res,
+                    cont: res,
                     method: "GET",
                     key,
                     id
@@ -87,7 +94,7 @@ export class Socket {
 
         this.say = (key, res) => {
             this.send({
-                ...res,
+                cont: res,
                 key,
                 method: "SAY"
             })
@@ -105,7 +112,6 @@ export class Socket {
 
 }
 
-
 function getID(l) {
     var str = ""
     for (let index = 0; index < l; index++) {
@@ -114,6 +120,24 @@ function getID(l) {
     return str;
 }
 
+const isPromise = obj =>
+    obj instanceof Promise;
+
+
+export function createInfinitySocket({ url }, callback) {
+
+    function start() {
+        var socket = new Socket({ url });
+        socket.onOpen = x => { callback(socket) };
+        socket.onClose = () => { start() };
+        socket.onError = () => { start() };
+    }
+
+    start();
+
+}
+
 export var utils = {
-    getID
+    getID,
+    isPromise: thing => thing instanceof Promise,
 }
