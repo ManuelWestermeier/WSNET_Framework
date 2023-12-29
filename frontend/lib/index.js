@@ -7,7 +7,6 @@ export class Socket {
         var obj = {
             on: {},
             onGet: {},
-            onStream: {},
             promises: {},
         }
 
