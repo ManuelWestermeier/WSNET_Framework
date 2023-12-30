@@ -37,6 +37,10 @@ class Client {
 
         this.#rawSocket = new WebSocket(url)
 
+        this.getState= () => this.#rawSocket.readyState;
+        
+        this.close= () => this.#rawSocket.close()
+
         this.#rawSocket.onclose = code => {
             this.onclose(code)
         }
