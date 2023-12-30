@@ -27,6 +27,8 @@ class Client {
 
         this.#rawSocket = socket;
 
+        this.close= () => socket.close()
+
         this.#rawSocket.onclose = code => {
             this.onclose(code)
         }
