@@ -27,11 +27,16 @@ class Client {
 
         this.#rawSocket = socket;
 
-        this.close= () => socket.close()
+        this.close = () => socket.close()
 
         this.#rawSocket.onclose = code => {
-            this.onclose(code)
-            delete this
+            try {
+                this.onclose(code)
+                Object.keys(this).forEach(key => delete this[key])
+                this.#obj = {}
+                this.#rawSocket = {}
+                delete this
+            } catch (error) { }
         }
 
         this.#rawSocket.onerror = err => {
