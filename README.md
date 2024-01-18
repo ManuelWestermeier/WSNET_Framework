@@ -9,10 +9,7 @@ The Next Gen of http
 ``` js
 import Client from "./_client";
 
-var API = new Client({
-    host: "localhost",
-    port: 211,
-})
+var API = new Client("ws://localhost:211")
 
 API.onopen = async () => {
 
