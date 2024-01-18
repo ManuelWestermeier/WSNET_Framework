@@ -31,6 +31,8 @@ class Client {
 
         this.#rawSocket.onclose = code => {
             this.onclose(code)
+            delete this.#obj
+            delete this.#rawsocket
         }
 
         this.#rawSocket.onerror = err => {
