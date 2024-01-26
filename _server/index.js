@@ -30,13 +30,7 @@ class Client {
         this.close = () => socket.close()
 
         this.#rawSocket.onclose = code => {
-            try {
-                this.onclose(code)
-                Object.keys(this).forEach(key => delete this[key])
-                this.#obj = {}
-                this.#rawSocket = {}
-                delete this
-            } catch (error) { }
+            this.onclose(code)
         }
 
         this.#rawSocket.onerror = err => {
@@ -47,13 +41,17 @@ class Client {
             this.#onmessage(chunk)
         }
 
+        this.getRawSocketParam = (key = "") => socket[key]
+
     }
 
     //noraml listeners
 
     onSay(key, handler) {
 
-        this.#obj.on.say[key] = handler;
+        if (!this.#obj.on.say[key])
+            this.#obj.on.say[key] = [handler];
+        else this.#obj.on.say[key].push(handler);
 
     }
 
@@ -192,11 +190,10 @@ class Client {
 
 exports.Client = Client;
 
-exports.createServer = ({ port }, handler) => {
+function defaultHandler(client = new Client()) { }
 
+exports.createServer = ({ port }, handler = defaultHandler) =>
     new WebSocketServer({ port }).on("connection", socket => handler(new Client(socket)))
-
-}
 
 
 process.on("uncaughtException", err => { console.error(err) })

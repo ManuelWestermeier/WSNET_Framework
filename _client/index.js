@@ -1,14 +1,12 @@
 const log = console.log;
-const chars = "QWERTZUIOPASDFGHJKLYXCVBNMqtzuioasdfghjkyxcvbnm1234567890"
+var random = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32 + "";
 
 function randomBytes(l) {
-    var str = ""
-
+    var rand = "";
     for (let index = 0; index < l; index++) {
-        str += chars[Math.floor(Math.random() * chars.length)]
+        rand += random()[5];
     }
-
-    return chars
+    return rand;
 }
 
 class Client {
@@ -37,9 +35,9 @@ class Client {
 
         this.#rawSocket = new WebSocket(url)
 
-        this.getState= () => this.#rawSocket.readyState;
-        
-        this.close= () => this.#rawSocket.close()
+        this.getState = () => this.#rawSocket.readyState;
+
+        this.close = () => this.#rawSocket.close()
 
         this.#rawSocket.onclose = code => {
             this.onclose(code)
@@ -67,7 +65,9 @@ class Client {
 
     onSay(key, handler) {
 
-        this.#obj.on.say[key] = handler;
+        if (!this.#obj.on.say[key])
+            this.#obj.on.say[key] = [handler];
+        else this.#obj.on.say[key].push(handler);
 
     }
 

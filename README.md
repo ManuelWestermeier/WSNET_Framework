@@ -9,7 +9,7 @@ The Next Gen of http
 ``` js
 import Client from "./_client";
 
-var API = new Client("ws://localhost:211")
+var API = new Client("ws://localhsot:211")
 
 API.onopen = async () => {
 
@@ -32,6 +32,9 @@ createServer({ port: 211 }, async client => {
 
 
 ## Methods 
-1. Get / onGet
-2. Say / onSay
-3. streamChunk | endStream | isStreamEnd / onStream
+### 1. Get / onGet
+#### can handle only one handler per key
+### 2. Say / onSay
+#### can handle unlimited handler per key
+### 3. streamChunk | endStream | isStreamEnd / onStream
+#### can handle only one handler per key
