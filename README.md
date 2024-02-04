@@ -36,5 +36,3 @@ createServer({ port: 211 }, async client => {
 #### can handle only one handler per key
 ### 2. Say / onSay
 #### can handle unlimited handler per key
-### 3. streamChunk | endStream | isStreamEnd / onStream
-#### can handle only one handler per key
