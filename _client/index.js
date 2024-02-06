@@ -48,9 +48,9 @@ class Client {
 
     //noraml listeners
 
-    onSay(key, handler) {
+    onSay(key, handler, replace = false) {
 
-        if (!this.#obj.on.say[key])
+        if (replace || !this.#obj.on.say[key])
             this.#obj.on.say[key] = [handler];
         else this.#obj.on.say[key].push(handler);
 
@@ -98,7 +98,7 @@ class Client {
             //onSay
             if (data?.method == "say" && data?.key) {
                 if (this.#obj.on.say?.[data.key])
-                    this.#obj.on.say[data.key]?.(data?.cont)
+                    this.#obj.on.say[data.key].forEach(fn => fn(data?.cont))
             }
             //onGet
             else if (data?.method == "get" && data?.key && data?.id) {
@@ -125,7 +125,7 @@ class Client {
                     this.#obj.getPromises?.[data.id]?.(data?.cont);
             }
 
-        } catch (error) { }
+        } catch (error) { console.log(error) }
 
     }
 
