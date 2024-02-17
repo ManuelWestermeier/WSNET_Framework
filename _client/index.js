@@ -20,7 +20,7 @@ class Client {
         getPromises: {}
     }
 
-    constructor(url) {
+    constructor(url, params) {
 
         this.#rawSocket = new WebSocket(url)
 
@@ -33,6 +33,8 @@ class Client {
         }
 
         this.#rawSocket.onopen = () => {
+            if (params)
+                this.#send("params", false, params, false)
             this.onopen()
         }
 

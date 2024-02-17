@@ -1,5 +1,9 @@
-const { randomBytes } = require("crypto")
+const crypto = require("crypto")
 const { WebSocketServer } = require("ws")
+
+function randomBytes(l) {
+    return crypto.randomBytes(l).toString("base64url")
+}
 
 
 class Client {
@@ -9,7 +13,8 @@ class Client {
     #obj = {
         on: {
             get: {},
-            say: {}
+            say: {},
+            params: () => false
         },
         getPromises: {}
     }
@@ -50,6 +55,10 @@ class Client {
 
         this.#obj.on.get[key] = handler;
 
+    }
+
+    onParams(handler) {
+        this.#obj.on.params = handler
     }
 
     //Normal Methodas
@@ -113,6 +122,9 @@ class Client {
             else if (data?.method == "getback" && data?.id) {
                 if (this.#obj.getPromises?.[data.id])
                     this.#obj.getPromises?.[data.id]?.(data?.cont);
+            }
+            else if (data?.method == "params") {
+                this.#obj.on?.params?.(data?.cont)
             }
 
         } catch (error) { }
