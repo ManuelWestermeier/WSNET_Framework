@@ -75,7 +75,13 @@ class Client {
 
         return new Promise((reslove) => {
 
+            var rejectTimeout = setTimeout(() => {
+                delete this.#obj.getPromises[id];
+                reslove(new Error("too long"))
+            }, 60000)
+
             this.#obj.getPromises[id] = res => {
+                clearTimeout(rejectTimeout);
                 delete this.#obj.getPromises[id];
                 reslove(res);
             };
