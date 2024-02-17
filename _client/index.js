@@ -50,7 +50,7 @@ class Client {
 
     //noraml listeners
 
-    onSay(key, handler, replace = false) {
+    onSay(key, handler, replace = true) {
 
         if (replace || !this.#obj.on.say[key])
             this.#obj.on.say[key] = [handler];
