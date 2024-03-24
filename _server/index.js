@@ -98,7 +98,11 @@ class Client {
 
         try {
 
-            var data = JSON.parse(data);
+            try {
+                var data = JSON.parse(data);
+            } catch (error) {
+                return
+            }
 
             //onSay
             if (data?.method == "say" && data?.key) {
@@ -133,7 +137,7 @@ class Client {
                 this.#obj.on?.params?.(data?.cont)
             }
 
-        } catch (error) { }
+        } catch (error) { console.log(error) }
 
     }
 
